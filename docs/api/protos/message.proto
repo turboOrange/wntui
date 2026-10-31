@@ -1,0 +1,565 @@
+/**
+*   Definition of WNT messages
+*
+*   Copyright:
+*        Copyright Wirepas Ltd 2019 licensed under Apache License, Version 2.0
+*        See file LICENSE for full license details.
+*/
+syntax="proto2";
+
+import "nanopb.proto";
+
+import "otap.proto";
+import "commons.proto";
+import "internal.proto";
+import "remote_api.proto";
+import "positioning.proto";
+
+package com.wirepas.proto.wnt;
+
+message Neighbor {
+    // This equals neighbor diagnostics
+    optional uint32 address = 1;
+    optional float cluster_channel_MHz = 2;
+    optional float radio_power_dB = 3;
+    enum NeighborType {
+        MEMBER = 1;
+        SYNC_CLUSTER = 2;           // Alternative route
+        ASSOCIATED_CLUSTER = 3;     // Next hop
+        UNSYNCED = 4;               // Heard from scan/SNDP
+        NEIGHBOR_TYPE_UNKNOWN = 255;
+    }
+    optional NeighborType neighbor_type = 4;
+    optional float rssi_dBm = 5;
+    optional bool no_neighbors = 6; // This is special value to create 1-size list when no neighbors exist
+    optional uint32 cluster_channel = 7;
+    optional uint32 amount_of_cluster_beacon_reception_attempts = 8;
+    optional uint32 amount_of_failed_cluster_beacon_reception_attempts = 9;
+}
+
+message CostInfo {
+    // Cost info structure, used in node diagnostics
+    optional uint32 next_hop_address = 2;
+    optional uint32 cost = 3;
+    optional float quality = 4; // Percentage
+}
+
+message CalculatedValuesFromDiagnostics {
+    optional float low_energy_transmission_load_percentage = 1;
+}
+
+message DiagnosticsData {
+    // This message is general purpose container.
+    // This does NOT distinguish different types of diagnostics packets!
+    // Info currently sent in neighbor diagnostics
+    repeated Neighbor neighbors = 1 [(nanopb).max_count = 32];
+
+    // Info currently sent in node diagnostics
+    optional float access_cycle_ms = 2;
+    optional BaseRole role = 3;
+    optional bool cb_mac = 4; // True = low latency, false = low energy
+    // Not supported - optional bool is_relay = 5;
+    optional bool is_autorole = 6;
+    optional float voltage = 7; // Volts
+    optional float max_buffer_usage = 8; // Percentage
+    optional float average_buffer_usage = 9; // Percentage
+    optional uint32 mem_alloc_fails = 10;
+    // WM FW 3.x not supported anymore - repeated float buf_delay_ms = 11 [packed=true, (nanopb).max_count = 2]; // By qos
+    optional uint32 scans = 12;
+    // WM FW 3.x not supported anymore - repeated float dl_average_ms = 13 [packed=true, (nanopb).max_count = 2]; // By qos
+    // WM FW 3.x not supported anymore - repeated float dl_minimum_ms = 14 [packed=true, (nanopb).max_count = 2]; // By qos
+    // WM FW 3.x not supported anymore - repeated float dl_maximum_ms = 15 [packed=true, (nanopb).max_count = 2]; // By qos
+    // WM FW 3.x not supported anymore - repeated uint32 dl_samples = 16 [packed=true, (nanopb).max_count = 2]; // By qos
+
+    // Not valid for WM version >= 5.0 as there is one combined value for dropped packets
+    repeated uint32 dropped = 17 [packed=true, (nanopb).max_count = 2]; // By qos
+    optional uint32 sink_address = 49;
+    repeated CostInfo cost = 18 [(nanopb).max_count = 2]; // By qos
+    enum Events {
+        ROLE_NO_EVENTS = 0; // This is special value to create 1-size list when no events occurred
+        SCAN_REASON_INITIAL_SCAN = 1;
+        SCAN_REASON_RESTRICTED_CHANNEL = 2;
+        SCAN_REASON_MAJOR_BOUNDARY = 3;
+        SCAN_REASON_NO_CHANNEL = 4;
+        SCAN_REASON_BLACKLIST = 5;
+        ROLE_CHANGE_TO_SUBNODE = 8;
+        ROLE_CHANGE_TO_HEADNODE = 9;
+        ROUTE_CHANGE = 16;
+        SCAN_REASON_NEXT_HOP_LOST = 20;
+        SCAN_REASON_BOUNDARY_CHANGE = 21;
+        SCAN_REASON_HIGH_PER = 22;
+        SCANNING_REQ_BY_APPLICATION = 23;
+        SCANNING_NO_CHANNEL_SELECTED = 24;
+        SCANNING_FTDMA_CONF_WITH_NEIGHBOR = 25;
+        SCANNING_FTDMA_CONF_WITH_NB_NEIGHBOR = 26;
+        SCANNING_TIMING_CONF_WITH_NEIGHBOR = 27;
+        SCANNING_TIMING_CONF_WITH_MULTIPLE_NEIGHBORS = 28;
+        SCANNING_NEED_MORE_NEIGHBORS = 29;
+        SCANNING_PERIODIC = 30;
+        SCANNING_ROLE_CHANGE = 31;
+        BOOT_POWERON = 32;
+        BOOT_INTENTIONAL = 33;
+        BOOT_SW_FAILURE = 34;
+        BOOT_PROCESSOR_FAILURE = 35;
+        BOOT_WATCHDOG_EXPIRE = 36;
+        BOOT_UNINDENTIFIED_REASON = 37;
+        SYNCLOST_ALTERNATIVE_ROUTE = 40;
+        SYNCLOST_PRIMARY_ROUTE = 41;
+        FTDMA_ADJ_MINOR_BOUNDARY = 48;
+        FTDMA_ADJ_NOT_IN_SLOT_BOUNDARY = 49;
+        FTDMA_ADJ_CONFLICT_WITH_PRIMARY_ROUTE = 50;
+        FTDMA_ADJ_CONFLICT_WITH_ALTERNATIVE_ROUTE = 51;
+        FTDMA_ADJ_CONFLICT_WITH_NEIGHBOR = 52;
+        FTDMA_ADJ_NO_CHANNEL_SELECTED = 53;
+        FTDMA_ADJ_CHANNEL_BLACKLISTED = 54;
+        FTDMA_ADJ_OTHER_REASON = 55;
+        SINK_CHANGED = 56;
+        FHMA_ADJUST = 57;
+        TDMA_ADJUST_CCSTAT = 58;
+        ROUTING_LOOP = 64;
+        DENSE_REMOVE_SUBNODE = 72;
+        DOWNLINK_TX_FAIL_COULD_NOT_SEND = 73;
+        DOWNLINK_TX_FAIL_NEXT_HOP_COULD_NOT_SEND = 74;
+        UPLINK_TX_FAIL_COULD_NOT_SEND = 75;
+        TOO_MANY_ROUTERS_DURING_SCAN = 76;
+        TIMING_LATE_FOR_SCHEDULING_MAC_OPERATION = 77;
+        SCAN_REASON_ADVERTISER = 78;
+        SCAN_REASON_APC = 79;
+        SHORT_ADDRESS_RESET = 80;
+        RESET_NEW_BASE = 200;
+        RESET_MODEM = 206;
+        RESET_MODEM_INIT = 207;
+        RESET_SOFT_WDT = 208;
+        RESET_NMI = 209;
+        RESET_HARD_FAULT = 210;
+        RESET_BUS_FAULT = 211;
+        RESET_USAGE_FAULT = 212;
+        RESET_MEM_MANAGE_FAULT = 213;
+        RESET_PIN = 214;
+        RESET_CPU_LOCKUP = 215;
+        RESET_SYSTEM_OFF_WAKEUP = 216;
+        RESET_BROWNOUT = 217;
+        RESET_SECURITY = 218;
+        RESET_REQUEST = 219;
+        EVENT_UNKNOWN = 255;
+    }
+
+    repeated Events events = 19 [packed=true, (nanopb).max_count = 15];
+    optional float duty_cycle = 20; // Percentage
+    optional uint32 antenna = 21;
+
+    // WM FW 3.x not supported anymore - optional uint32 access_cycles = 22;
+    optional float cluster_channel_MHz = 23;
+    optional float channel_reliability = 24; // Percentage
+    // WM FW 3.x not supported anymore - optional uint32 rx_amount = 25;
+    // WM FW 3.x not supported anymore - optional uint32 tx_amount = 26;
+    optional float aloha_rx_ratio = 27; // Percentage
+    // WM FW 3.x not supported anymore - optional float reserved_rx_success_ratio = 28; // Percentage
+    // WM FW 3.x not supported anymore - optional float data_rx_ratio = 47; // Percentage
+    // WM FW 3.x not supported anymore - optional float rx_duplicate_ratio = 29; // Percentage
+    // WM FW 3.x not supported anymore - optional float cca_success_ratio = 30; // Percentage
+    // WM FW 3.x not supported anymore - optional float broadcast_ratio = 31; // Percentage
+    // WM FW 3.x not supported anymore - optional float failed_unicast_ratio = 32; // Percentage
+    optional float max_reserved_slot_usage = 33; // Percentage
+    optional float avg_reserved_slot_usage = 48; // Percentage
+    optional float max_aloha_slot_usage = 34; // Percentage
+
+    // Info currently in boot diagnostics
+    optional uint32 boot_count = 35;
+    optional uint32 sw_version_devel = 36;
+    optional uint32 sw_version_maintenance = 37;
+    optional uint32 sw_version_minor = 38;
+    optional uint32 sw_version_major = 39;
+    optional uint32 scratchpad_sequence = 40;
+
+    enum HWMagic {
+        NRF51 = 1;
+        EZR32 = 2;
+        NRF52 = 3;
+        CC2650 = 4;
+        EFR32XG12_1024KB_128KB = 5;
+        NRF52840_1024KB_256KB = 6;
+        EFR32XG12_512KB_64KB = 7;
+        EFR32XG13_512KB = 8;
+        NRF52833 = 9;
+        EFR32XG21 = 10;
+        EFR32XG22 = 11;
+        BGM210PA22JIA = 12;
+        BGM220PC22HNA = 13;
+        BGM220SC22HNA = 14;
+        NRF9160 = 15;
+        EFR32XG23 = 16;
+        EFR32XG24 = 17;
+        NRF9120 = 18;
+        HWMAGIC_UNKNOWN = 255;
+    }
+
+    optional HWMagic hw_magic = 41;
+    optional StackProfile stack_profile = 42;
+    optional bool otap_enabled = 43;
+    optional uint32 boot_line_number = 44;
+    optional uint32 file_hash = 45;
+    repeated uint32 stack_trace = 46 [packed=true, (nanopb).max_count = 3];
+
+    // If WM version >= 3.4 Buffering Delay QoS1 is replaced by Routers in Neighborhood
+    optional uint32 routers_in_neighborhood = 50;
+
+    // If WM version >= 3.4 Broadcast Ratio is replaced by CB-MAC load
+    optional float cb_mac_load = 51;
+
+    // If WM version >= 4.0 Access cycles from traffic diagnostics
+    // is replaced by cluster node amounts, but is activated again in WM FW 5.2
+    optional uint32 cluster_member_amount = 52;
+    optional uint32 cluster_router_node_amount = 53;
+
+    // If WM version >= 4.0 cost array in node diagnostics will only contain one cost info
+    // The freed area is filled with blacklisting information
+    optional uint32 blacklisted_radio_channels_1_8 = 54;
+    optional uint32 blacklisted_radio_channels_9_16 = 55;
+    optional uint32 blacklisted_radio_channels_17_24 = 56;
+    optional uint32 blacklisted_radio_channels_25_32 = 57;
+    optional uint32 blacklisted_radio_channels_33_40 = 58;
+
+    // Added in WM version 4.0
+    optional uint32 scratchpad_firmware_sequence = 59;
+
+    // New in WM 5.0
+    optional uint32 broadcast_ll_members_pending = 60;
+    optional uint32 broadcast_le_members_pending = 61;
+    optional uint32 broadcast_next_hop_pending = 62;
+    optional uint32 broadcast_unack_pending = 63;
+    optional uint32 packets_expired_pending = 64;
+    optional uint32 packets_reroute_pending = 65;
+    optional uint32 unicast_cluster_pending = 66;
+    optional uint32 unicast_members_pending = 67;
+    optional uint32 dropped_packets_combined = 68;
+    optional uint32 cbmac_rx_messages_ack = 69;
+    optional uint32 cbmac_rx_messages_unack = 70;
+    optional uint32 cbmac_rx_ack_other_reasons = 71;
+    optional uint32 cbmac_tx_ack_cca_fail = 72;
+    optional uint32 cbmac_tx_ack_not_received = 73;
+    optional uint32 cbmac_tx_messages_ack = 74;
+    optional uint32 cbmac_tx_messages_unack = 75;
+    optional uint32 cbmac_tx_cca_unack_fail = 76;
+    optional uint32 cfmac_messages_ack = 77;
+    optional uint32 cfmac_pending_broadcast_le_member = 78;
+    optional int32 next_hop_radio_power_dB = 79;
+    optional int32 next_hop_rssi_dBm = 80;
+    optional uint32 blacklisted_radio_channels_count = 81;
+    optional uint32 application_version_major = 82;
+    optional uint32 application_version_minor = 83;
+    optional uint32 application_version_maintenance = 84;
+    optional uint32 application_version_devel = 85;
+
+    enum TraceType
+    {
+        NODE_DIAGNOSTICS = 1;
+        NEIGHBOR_DIAGNOSTICS = 2;
+        SCAN_DIAGNOSTICS = 3;
+        BOOT_DIAGNOSTICS = 4;
+        BOOT_DIAGNOSTICS_WM_FW_5_0 = 7;
+    }
+
+    optional TraceType trace_type = 86;
+    optional uint32 packet_sequence_number = 87;
+
+    // New in 5.1
+    optional uint32 cluster_channel = 88;
+    optional uint32 sleep_time_s = 89;
+
+    enum BootReason
+    {
+        NORMAL_POWER_ON_RESET_STARTUP = 0;
+        REBOOT_REQUESTED_AS_PART_OF_NORMAL_OPERATION = 1;
+        SOFTWARE_ASSERT_FAILURE = 2;
+        MCU_FAULT = 3;
+        WATCHDOG_RESET = 4;
+        UNKNOWN_RESET_REASON = 5;
+    }
+
+    optional BootReason boot_reason = 90;
+    optional int32 rx_gain = 91;
+    repeated int32 tx_powers = 92 [packed=true, (nanopb).max_count = 16];
+    optional uint32 scratchpad_transfers = 93;
+
+    enum InstallationQualityError
+    {
+        NO_ROUTE_TO_SINK = 0;
+        NOT_ENOUGH_NEIGHBORS = 1;
+        BAD_RSSI = 2;
+    }
+
+    optional float installation_quality = 94;
+    // Max_count should be the same as InstallationQualityError enum item count
+    repeated InstallationQualityError installation_quality_errors = 95 [packed=true, (nanopb).max_count = 3];
+    optional uint32 dropped_unack_broadcast_packets = 96;
+    optional uint32 unacknowledged_broadcast_transmissions_channel_count = 97;
+    optional int32 wide_band_noise_rssi_correction_dBm = 98;
+    optional float network_channel_packet_error_rate_percent = 99;
+
+    // Old value before 5.1
+    optional uint64 boot_diagnostics_tx_time_ms_epoch = 100;
+
+    // New in 5.1 continues
+    optional int32 cca_limit_dBm = 101;
+
+    // New in 5.2
+    optional uint32 address_clashes = 102;
+    optional uint32 ll_device_count = 103;
+
+    // New in 5.3
+    optional bool is_ble_scan_active = 104;
+    optional uint32 cost_compensation_throughput = 105;
+    optional uint32 cost_compensation_bad_link = 106;
+    optional uint32 cost_compensation_bad_channel = 107;
+    optional uint32 cost_compensation_price_of_association = 108;
+    optional uint32 cost_compensation_high_buffer_usage = 109;
+    optional uint32 cost_compensation_high_energy_consumption = 110;
+    optional bool is_joining_beacon_active = 111;
+    optional uint32 amount_of_flooding_messages = 112;
+    optional uint32 amount_of_dropped_reassembled_packets = 113;
+
+    // DECT
+    optional uint32 modem_version_devel = 114;
+    optional uint32 modem_version_maintenance = 115;
+    optional uint32 modem_version_minor = 116;
+    optional uint32 modem_version_major = 117;
+}
+
+message RxData {
+    optional uint32 source_endpoint = 2;
+    optional uint32 destination_endpoint = 4;
+    optional uint32 qos = 5 [default = 0];
+    optional bytes payload = 7;
+    optional uint32 payload_size = 8;
+    optional uint32 sink_address = 9;
+
+    // If WM FW version >= 4.0 QoS is divided to QoS and Hop count
+    optional uint32 hop_count = 10;
+
+    optional uint64 gateway_rx_time_ms_epoch = 11;
+    optional uint64 backend_rx_time_ms_epoch = 12;
+    optional int32 gateway_backend_rx_time_delta_ms = 13;
+
+    // Used to determine endpoints in diagnostics injector
+    optional bool is_dect_network = 14;
+}
+
+message AppConfigResponse {
+    enum AppConfigResult {  // Same as gateway ErrorCode
+        UNKNOWN_ERROR_CODE = -1;
+        OK = 0;
+        INTERNAL_ERROR = 1;
+        INVALID_SINK_ID = 2;
+        INVALID_ROLE = 3;
+        INVALID_NETWORK_ADDRESS = 4;
+        INVALID_NETWORK_CHANNEL = 5;
+        INVALID_CHANNEL_MAP = 6;
+        INVALID_NETWORK_KEYS = 7;
+        INVALID_AC_RANGE = 8;
+        INVALID_SINK_STATE = 9;
+        INVALID_DEST_ADDRESS = 10;
+        INVALID_DEST_ENDPOINT = 11;
+        INVALID_SRC_ENDPOINT = 12;
+        INVALID_QOS = 13;
+        INVALID_DATA_PAYLOAD = 14;
+        INVALID_SCRATCHPAD = 15;
+        INVALID_SCRATCHPAD_SIZE = 16;
+        INVALID_SEQUENCE_NUMBER = 17;
+        INVALID_REBOOT_DELAY = 18;
+        INVALID_DIAG_INTERVAL = 19;
+        INVALID_APP_CONFIG = 20;
+        INVALID_PARAM = 21;
+        NO_SCRATCHPAD_PRESENT = 22;
+        ACCESS_DENIED = 23;
+        REQUEST_NEEDS_SINK_ID = 24;
+        INVALID_MAX_HOP_COUNT = 25;
+        SINK_OUT_OF_MEMORY = 26;
+        SINK_TIMEOUT = 27;
+        FIRST_INVALID_ENUM_VALUE = 28;
+    }
+
+    optional AppConfigResult result = 1;
+}
+
+// This is a device measurement result
+message Measurement {
+    optional uint32 sensor_id = 1; // Id of the sensor, used to distinguish different measurements in device
+    optional float value = 2; // Actual measurement value
+    optional string unit = 4; // Unit of the measurement
+    optional bool no_measurements = 5; // This is special value to create 1-size list when no measurements exist
+}
+
+message GatewayHeartbeat {
+    optional string mac_address = 1; // MAC address of the gateway
+    optional string hostname = 3; // Hostname of the gateway
+}
+
+message GatewayInfo {
+    optional uint32 current_time_s_epoch = 1;
+    optional string model = 2;
+    optional string version = 3;
+    optional uint32 api_version = 4;
+}
+
+message BackendComponentInfo {
+    optional uint32 current_time_s_epoch = 1;
+    optional BackendComponent component = 2;
+}
+
+// Mapping of channel id to frequency
+message ChannelIdToFreqMap {
+    optional uint32 id = 1;
+    optional float freq_MHz = 2;
+}
+
+message AccessCycleLimits {
+    optional uint32 min_ms = 1;
+    optional uint32 max_ms = 2;
+}
+
+message NodeMessage {
+    optional uint32 destination_address = 1;
+    optional uint32 network_id = 2;
+    optional uint32 source_end_point = 3;
+    optional uint32 destination_end_point = 4;
+    optional uint32 qos = 5;
+    optional bytes payload = 6;
+}
+
+message GetScratchpadStatus {
+    optional uint32 network_id = 1;
+    optional uint32 resend_interval_s = 2;
+    optional bool is_close = 3;
+    optional bool is_sink_only = 4;
+    optional MessageSendingType message_sending_type = 5;
+    optional uint32 message_distribution_interval_s = 6;
+}
+
+enum ScratchpadType {
+    SCRATCHPAD_TYPE_BLANK = 0;
+    SCRATCHPAD_TYPE_PRESENT = 1;
+    SCRATCHPAD_TYPE_PROCESS = 2;
+    SCRATCHPAD_TYPE_UNKNOWN = 3;
+}
+
+enum ScratchpadWriteStatus {
+    SCRATCHPAD_WRITE_STATUS_OK = 0;
+    SCRATCHPAD_WRITE_STATUS_COMPLETED_OK = 1;
+    SCRATCHPAD_WRITE_STATUS_COMPLETED_ERROR = 2;
+    SCRATCHPAD_WRITE_STATUS_NOT_ONGOING = 3;
+    SCRATCHPAD_WRITE_STATUS_INVALID_START = 4;
+    SCRATCHPAD_WRITE_STATUS_INVALID_NUM_BYTES = 5;
+    SCRATCHPAD_WRITE_STATUS_INVALID_HEADER = 6;
+    SCRATCHPAD_WRITE_STATUS_INVALID_NULL_BYTES = 7;
+    SCRATCHPAD_WRITE_STATUS_FLASH_ERROR = 8;
+    SCRATCHPAD_WRITE_STATUS_UNKNOWN = 9;
+}
+
+message ScratchpadStatus {
+    optional bool is_continuous_query_on = 1;
+    optional uint64 tx_time_ms_epoch = 2; // Not updated when is_continuous_query_on changes
+
+    optional uint32 stored_scratchpad_size = 10;
+    optional uint32 stored_scratchpad_crc = 11;
+    optional uint32 stored_scratchpad_sequence = 12;
+    optional ScratchpadType stored_scratchpad_type = 13;
+    optional ScratchpadWriteStatus stored_scratchpad_status = 14;
+
+    optional uint32 processed_fw_scratchpad_size = 20;
+    optional uint32 processed_fw_scratchpad_crc = 21;
+    optional uint32 processed_fw_scratchpad_sequence = 22;
+    optional uint32 processed_fw_area_id = 23;
+    optional uint32 processed_fw_version_major = 24;
+    optional uint32 processed_fw_version_minor = 25;
+    optional uint32 processed_fw_version_maintenance = 26;
+    optional uint32 processed_fw_version_devel = 27;
+
+    optional uint32 processed_application_scratchpad_size = 40;
+    optional uint32 processed_application_scratchpad_crc = 41;
+    optional uint32 processed_application_scratchpad_sequence = 42;
+    optional uint32 processed_application_area_id = 43;
+    optional uint32 processed_application_version_major = 44;
+    optional uint32 processed_application_version_minor = 45;
+    optional uint32 processed_application_version_maintenance = 46;
+    optional uint32 processed_application_version_devel = 47;
+
+    optional ScratchpadAction scratchpad_action = 60;
+    optional uint32 target_sequence = 61;
+    optional uint32 target_crc = 62;
+    optional uint32 target_delay_minutes = 63;
+    optional uint32 remaining_time_minutes = 64;
+}
+
+message SetScratchpadAction {
+    optional uint32 network_id = 1;
+    optional ScratchpadAction scratchpad_action = 2;
+}
+
+// This is the main message that base of every Protocol Buffer message
+message Message {
+    // Message overhead
+    repeated uint32 id = 1 [packed=true]; // Message ID. Not kept as uint64!
+    optional uint32 network_id = 2;
+    optional string gateway_id = 3;
+    optional uint64 tx_time = 4; // Generation time of the message: epoch ms
+    optional uint64 rx_time = 5; // Reception time of the message; epoch ms
+
+    optional uint32 source_address = 7; // Node ID
+    optional uint32 destination_address = 8;
+    optional float travel_time_ms = 9;
+
+    // Messages, uni- or bidirectional
+    optional DiagnosticsData diagnostics = 50;
+    optional RxData rx_data = 51;
+    optional AppConfigData app_config = 52;
+    optional StackProfile stack_profile = 53;
+    repeated Measurement measurement = 54;
+    optional GatewayHeartbeat gw_heartbeat = 55;
+    optional RxData tx_data = 56;
+    // optional uint32 channel_map = 57;  Not supported anymore as for WM FW 3.x
+    optional uint32 network_channel = 58;
+    optional bool security_enabled = 59;
+    repeated ChannelIdToFreqMap channel_info = 60;
+    optional AppConfigResponse app_config_response = 61;
+    optional AccessCycleLimits access_cycle_limits = 62;
+    optional GatewayInfo gateway_info = 63;
+    optional BackendComponentInfo backend_component_info = 64;
+    optional ScratchpadStatus scratchpad_status = 65;
+
+    // Backend internal and backend -> client
+    optional BackendMessage backend_message = 70;
+    optional OnlineStatus online_status = 71;
+    optional TraveltimeKPI traveltime_kpi = 72;
+    optional NodeMetadata node_metadata = 73;
+    optional RTSituationMetadata rtsituation_metadata = 74;
+    optional BackendHeartbeat backend_heartbeat = 75;
+    optional MetadataUpdateMessage metadata_update_message = 76;
+    repeated SinkPseudoIdMap sink_pseudo_id_map = 77;
+    optional BackendComponentStatus backend_component_status = 78;
+
+    // Remote API procedures
+    optional RemoteApiRequestCollection remoteapi_requests = 80;
+    optional RemoteApiResponse remoteapi_response = 81;
+
+    // Messages to network
+    repeated NodeMessage node_messages = 90;
+    repeated GetScratchpadStatus get_scratchpad_status = 91;
+
+    // OTAP
+    optional SetOTAPState set_otap_state = 100;
+    optional SetOTAPStateResponse set_otap_state_response = 101;
+    optional SetScratchpadAction set_scratchpad_action = 102;
+
+    // Positioning
+    optional com.wirepas.proto.wpe.MeshData positioning_mesh_data = 130;
+    optional com.wirepas.proto.wpe.Status positioning_status_data = 131;
+
+    // Other
+    optional CalculatedValuesFromDiagnostics calculated_values_from_diagnostics = 160;
+}
+
+// This is container of multiple messages at the same time
+message MessageCollection {
+    repeated Message message_collection = 1;
+}
