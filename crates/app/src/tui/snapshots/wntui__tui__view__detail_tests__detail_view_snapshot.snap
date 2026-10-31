@@ -1,0 +1,64 @@
+---
+source: crates/app/src/tui/view.rs
+expression: "detail_text(&detail_app(2), &engine())"
+---
+ wntui  all networks  live                                                                          
+                                                                                                    
+ Conveyor head 1  ● online                                                                          
+                                                                                                    
+ identity                                                                                           
+   network               Demo plant (42)                                                            
+   address               0x0002 (2)                                                                 
+   name                  Conveyor head 1                                                            
+   description           -                                                                          
+   approved              yes                                                                        
+   virtual               no                                                                         
+                                                                                                    
+ status                                                                                             
+   online                online                                                                     
+   previous              online                                                                     
+   since                 19675d 22:18:10                                                            
+   last seen             5s                                                                         
+   gateway               -                                                                          
+                                                                                                    
+ mesh                                                                                               
+   role                  headnode                                                                   
+   latency mode          low energy                                                                 
+   autorole              yes                                                                        
+   sink                  0x0001                                                                     
+   neighbors             0x0001 -45 dBm (next hop) · 0x0003 -61 dBm                                 
+                                                                                                    
+ power & radio                                                                                      
+   voltage               3.05 V                                                                     
+   stack profile         2.4 GHz                                                                    
+                                                                                                    
+ firmware                                                                                           
+   stack                 5.2.1.0                                                                    
+   hardware              -                                                                          
+   boot count            5                                                                          
+   last boot reason      power-on reset                                                             
+   otap enabled          yes                                                                        
+   scratchpad seq        11                                                                         
+                                                                                                    
+ positioning                                                                                        
+   role                  tag                                                                        
+   rssi offset           -10                                                                        
+   position              61.454759, 23.885602, 0.0 m                                                
+                                                                                                    
+ travel time                                                                                        
+   qos 0                 min 48 · avg 120 · max 310 ms                                              
+   qos 1                 min 61 · avg 155 · max 402 ms                                              
+   window                120 s                                                                      
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+ NODE │ live │ ●4 ◐2 ○2                                                 :cmd  /filter  ?help  q quit

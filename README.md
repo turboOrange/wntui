@@ -108,6 +108,19 @@ editable fields (blue) open the editor on enter, graphable fields
 (purple) open their graph; `t` cycles the graph time range. Editing
 name/description requires an admin session.
 
+Graphs carry a wall-clock time axis: grid lines at nice boundaries
+(15m/hour/6h/day depending on the span) with `HH:MM` labels aligned under
+them. The online status graph is a stepped band — green in the top lane
+while the node was online, red in the bottom lane while offline, yellow
+in between for uncertain — so "when was this node online" reads directly
+off the screen.
+
+On the graphs page the view is explorable: `h`/`l` (or the arrows, or
+the mouse wheel) pan, `+`/`-` (or ctrl+wheel) zoom, `H`/`L` jump to the
+start/end, `r` refetches. Zooming in never refetches — it acts on the
+fetched series; panning or zooming past the fetched bounds fetches that
+window from Influx, and the axis re-labels itself to the new span.
+
 ## Filtering and sorting
 
 `/` opens the filter editor; the same expression works for

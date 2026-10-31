@@ -1,0 +1,34 @@
+---
+source: crates/app/src/tui/view.rs
+expression: text
+---
+ wntui  all networks  live                                                                          
+                                                                                                    
+  ST          ADDR▲   NAME                                                       ROLE   VOLT   AGE  
+❯ ● online    0x0001  Sink A                                                     sink   3.31   5s   
+  ● online    0x0002  Conveyor head 1                                            head   3.05   5s   
+  ◐ uncertain 0x0003  Conveyor head 2                                            head   2.98   5s   
+  ● online    0x0004  Line 3 sensor                                              sub    3.12   5s   
+  ○ offline   0x0005  Line 7 sensor                                              sub    2.91   5s   
+  ● online    0x0006  Gate west                                                  sub    3.20   5s   
+  ◐ uncertain 0x0007  Gate east                                                  sub    3.02   5s   
+  ○ offline   0x0008  Cold store tag                                             sub    2.74   5s   
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+ NORMAL │ live │ ●4 ◐2 ○2                                               :cmd  /filter  ?help  q quit

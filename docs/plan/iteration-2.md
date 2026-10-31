@@ -4,7 +4,35 @@ The three big items from the first live review of iteration 1, plus the
 groundwork they need. Everything else from that review went into the
 iteration-1 M10 fixpack (`iteration-1.md`).
 
-## Status: N2 done (N3–N4 next)
+## Status: N4 done — iteration 2 complete
+
+N4 landed (2026-10-30): the graphs page is explorable. `h`/`l`/arrows
+(and the mouse wheel) pan, `+`/`-` (and ctrl+wheel) zoom, `H`/`L` jump to
+the fetched edges, `r` refetches the current window, `t` still cycles the
+range. Window math is pure (`pan_window`/`zoom_window`/`jump_window` in
+`tui/graphs.rs`, span clamped to 1m–7d); the zoom-in fast path acts on
+the fetched series without a refetch, and a pan/zoom that leaves the
+fetched bounds fetches exactly that window (`EngineCommand::FetchGraph`
+gained an optional `(start, end)`; influx queries pin both edges to
+absolute times). Replies echo the request's window and the reducer drops
+stale ones by (key, metric, range/window) match. The header shows the
+window span when zoomed, the grid/labels follow the window, and the
+chart plots only windowed points (with one neighbor each side so lines
+cross the view edges).
+
+N3 landed (2026-10-30): the online timeline is a custom stepped-band
+widget (`render_timeline` in `tui/graphs.rs`), not a Chart line. The band
+steps between three lanes — offline bottom, uncertain middle, online top
+— colored with the status palette, with the word labels right-aligned
+against the axis. `TimeAxis` owns the boundary ladder (15m/1h/6h/1d by
+span and width): grid lines at wall-clock boundaries and labels centered
+under them, for both the timeline and the Chart-rendered metrics (grid
+painted under the chart — the canvas only touches its data cells — and
+the chart's evenly spaced labels replaced with boundary-aligned ones).
+`chart_graph_area` replicates the Chart's private layout so grid columns
+land inside the real plot area; a test pins it against the widget's
+drawn axis corner. Snapshots: `graphs_view_snapshot` (voltage, grid +
+labels) and `online_timeline_snapshot` (stepped band).
 
 N2 landed (2026-10-26): the node list is virtualized. A versioned
 projection cache (`NodeStore.version` bumps on every mutation;
@@ -49,8 +77,8 @@ Per-milestone audit (grep-verified, not assumed):
 |---|---|---|
 | N1 filters | `:sort` palette cmd; grammar core; located errors + caret rendering; `[ok]`/`[err]`; `:fields` overlay; Tab completion; sort direction in the header; named filter profiles | — |
 | N2 virtualized list | projection cache keyed on store version + filter text + sort + network (+ second bucket for `age:`); windowed render (`render_nodes` builds only `[offset, end)`); 10-row overscan; `NodeStore::mark_snapshot_complete` for bulk fixtures; 100k TestBackend render test; `AppState.scroll_offset` synced by the reducer | per-frame store walks (gone from filter line, status counts, and table rows) |
-| N3 graphs/timeline | HH:MM axis labels (F5); online metric + word-labeled pinned y axis | stepped band widget (online renders as a Chart line); nice-boundary grid lines |
-| N4 pan/zoom | stale-reply guard by (key, metric, range) | pan/zoom keys (none bound on graphs page); window in `FetchGraph` (key/metric/range only, no start/end); zoom fast path |
+| N3 graphs/timeline | stepped band widget (`render_timeline`, three lanes + status colors); `TimeAxis` boundary ladder (15m/1h/6h/1d) with grid lines and aligned labels on both the timeline and the chart path; `chart_graph_area` layout replication pinned by test; `online_timeline_snapshot` | — |
+| N4 pan/zoom | pan/zoom/jump/refetch keys bound on the graphs page (h/l/←/→, +/-, H/L, r) plus wheel pan and ctrl+wheel zoom; `FetchGraph` window (start, end) pinned to absolute times in the influx query; stale-reply guard extended to the echoed window; zoom-in fast path (no refetch inside the fetched bounds); window-driven axis, grid, labels, and point slicing | — |
 
 ## Goal
 

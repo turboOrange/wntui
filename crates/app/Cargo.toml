@@ -1,0 +1,25 @@
+[package]
+name = "wntui"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "wntui"
+path = "src/main.rs"
+
+[dependencies]
+wntui-core.workspace = true
+
+anyhow.workspace = true
+clap.workspace = true
+crossterm = { version = "0.29", features = ["event-stream"] }
+fuzzy-matcher = "0.3.7"
+futures-util = { version = "0.3.34", features = ["sink"] }
+ratatui.workspace = true
+rpassword = "7"
+serde_json.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+pretty_assertions = "1"
